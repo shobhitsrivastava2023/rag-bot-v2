@@ -48,9 +48,13 @@ export async function POST(req: Request) {
   If the context doesn't contain relevant information to answer the question, say so politely.
   Always provide accurate information based only on the context provided.
   
+  you will get form data along with name registration number and section. ignore those details just 
+  focus on the questions and options provided and give the answer based on the context provided.
+  
   IMPORTANT: If the user asks about a multiple choice question (MCQ) or asks which option is correct,
-  provide ONLY the letter or the exact one-word answer (like "A", "B", "C", "D" or the specific word).
+  provide ONLY the letter or the exact one-word answer (like "A", "B", "C", "D" with that specific option).
   Do not explain your reasoning for MCQ questions unless specifically asked to do so.
+
   
   Context:
   ${context || "No relevant context found."}`,

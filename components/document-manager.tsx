@@ -1,13 +1,13 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { FileUp, Loader2, Trash2, FileText, FileIcon } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { FileUp, Loader2, Trash2, FileText, FileIcon, Lock } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Progress } from "@/components/ui/progress"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 type Document = {
   id: string
@@ -25,10 +25,22 @@ export function DocumentManager() {
   const [isLoading, setIsLoading] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
+  const [showVerification, setShowVerification] = useState(false)
+  const [passcode, setPasscode] = useState("")
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [isUploadVerified, setIsUploadVerified] = useState(false)
 
   useEffect(() => {
     // Fetch existing documents when component mounts
     fetchDocuments()
+  }, [])
+
+  // Check if upload is verified on mount
+  useEffect(() => {
+    const verified = localStorage.getItem('uploadVerified')
+    if (verified === 'true') {
+      setIsUploadVerified(true)
+    }
   }, [])
 
   const fetchDocuments = async () => {
@@ -167,6 +179,51 @@ export function DocumentManager() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
+  const handleVerify = async () => {
+    if (!passcode.trim()) return
+
+    setIsVerifying(true)
+    try {
+      const response = await fetch('/api/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ passcode }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Invalid passcode')
+      }
+
+      setIsUploadVerified(true)
+      localStorage.setItem('uploadVerified', 'true')
+      setShowVerification(false)
+      toast({
+        title: "Success",
+        description: "Passcode verified successfully",
+      })
+      fileInputRef.current?.click()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Invalid passcode",
+        variant: "destructive",
+      })
+      setPasscode("")
+    } finally {
+      setIsVerifying(false)
+    }
+  }
+
+  const handleUploadClick = () => {
+    if (!isUploadVerified) {
+      setShowVerification(true)
+    } else {
+      fileInputRef.current?.click()
+    }
+  }
+
   return (
     <Card className="msforms-card">
       <CardHeader className="pb-2 pt-4 border-b">
@@ -175,10 +232,10 @@ export function DocumentManager() {
       <CardContent>
         <div className="mb-3 mt-2">
           <Button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={handleUploadClick}
             variant="default"
             disabled={isUploading}
-            className="w-full flex items-center gap-2 py-1.5 h-auto text-sm bg-msforms-600 hover:bg-msforms-700"
+            className="w-full flex items-center gap-2 py-1.5 h-auto text-sm bg-msforms-600 hover:bg-msforms-700 bg-black"
           >
             {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileUp className="h-3 w-3" />}
             {isUploading ? "Uploading..." : "Upload Documents"}
@@ -191,6 +248,46 @@ export function DocumentManager() {
             multiple
             accept=".pdf,.ppt,.pptx,.doc,.docx,.txt"
           />
+
+          {/* Verification Dialog */}
+          <Dialog open={showVerification} onOpenChange={setShowVerification}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Verify Passcode</DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col items-center gap-4 py-4">
+                <Lock className="h-12 w-12 text-gray-400" />
+                <p className="text-center text-sm text-gray-600">
+                  Please enter the passcode to upload documents
+                </p>
+                <Input
+                  type="password"
+                  placeholder="Enter passcode"
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleVerify()
+                    }
+                  }}
+                />
+                <Button 
+                  className="w-full" 
+                  onClick={handleVerify}
+                  disabled={isVerifying || !passcode.trim()}
+                >
+                  {isVerifying ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Verifying...
+                    </>
+                  ) : (
+                    "Verify"
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {isUploading && (
             <div className="mt-2">

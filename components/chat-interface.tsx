@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Send, Loader2, FileText } from "lucide-react"
+import { Send, Loader2, FileText, Lock } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -26,8 +27,54 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isVerified, setIsVerified] = useState(false)
+  const [passcode, setPasscode] = useState("")
+  const [isVerifying, setIsVerifying] = useState(false)
   const { toast } = useToast()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Check if user is already verified
+  useEffect(() => {
+    const verified = localStorage.getItem('chatVerified')
+    if (verified === 'true') {
+      setIsVerified(true)
+    }
+  }, [])
+
+  const handleVerify = async () => {
+    if (!passcode.trim()) return
+
+    setIsVerifying(true)
+    try {
+      const response = await fetch('/api/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ passcode }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Invalid passcode')
+      }
+
+      setIsVerified(true)
+      localStorage.setItem('chatVerified', 'true')
+      toast({
+        title: "Success",
+        description: "Passcode verified successfully",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Invalid passcode",
+        variant: "destructive",
+      })
+      setPasscode("")
+    } finally {
+      setIsVerifying(false)
+    }
+  }
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -106,6 +153,51 @@ export function ChatInterface() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (!isVerified) {
+    return (
+      <Card className="h-[calc(100vh-200px)] flex flex-col">
+        <CardHeader className="pb-2 pt-4">
+          <CardTitle className="text-lg">Verify Passcode</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col items-center justify-center gap-4">
+          <div className="max-w-sm w-full space-y-4">
+            <div className="flex flex-col items-center gap-2">
+              <Lock className="h-12 w-12 text-gray-400" />
+              <p className="text-center text-sm text-gray-600">
+                Please enter the passcode to access the chat interface
+              </p>
+            </div>
+            <Input
+              type="password"
+              placeholder="Enter passcode"
+              value={passcode}
+              onChange={(e) => setPasscode(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleVerify()
+                }
+              }}
+            />
+            <Button 
+              className="w-full" 
+              onClick={handleVerify}
+              disabled={isVerifying || !passcode.trim()}
+            >
+              {isVerifying ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Verifying...
+                </>
+              ) : (
+                "Verify"
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
