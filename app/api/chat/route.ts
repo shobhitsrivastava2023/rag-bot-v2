@@ -44,12 +44,16 @@ export async function POST(req: Request) {
     try {
       aiResponse = await generateText({
         model: openai("gpt-4o"),
-        system: `You are a helpful assistant that answers questions based on the provided context. 
-        If the context doesn't contain relevant information to answer the question, say so politely.
-        Always provide accurate information based only on the context provided.
-        
-        Context:
-        ${context || "No relevant context found."}`,
+        system: `You are a helpful assistant that answers questions based on the provided context.
+  If the context doesn't contain relevant information to answer the question, say so politely.
+  Always provide accurate information based only on the context provided.
+  
+  IMPORTANT: If the user asks about a multiple choice question (MCQ) or asks which option is correct,
+  provide ONLY the letter or the exact one-word answer (like "A", "B", "C", "D" or the specific word).
+  Do not explain your reasoning for MCQ questions unless specifically asked to do so.
+  
+  Context:
+  ${context || "No relevant context found."}`,
         prompt: lastUserMessage.content,
       })
 

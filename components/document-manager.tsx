@@ -8,7 +8,6 @@ import { FileUp, Loader2, Trash2, FileText, FileIcon } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Progress } from "@/components/ui/progress"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 
 type Document = {
   id: string
@@ -169,19 +168,19 @@ export function DocumentManager() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Document Library</CardTitle>
+    <Card className="msforms-card">
+      <CardHeader className="pb-2 pt-4 border-b">
+        <CardTitle className="text-lg text-msforms-700">Document Library</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
+        <div className="mb-3 mt-2">
           <Button
             onClick={() => fileInputRef.current?.click()}
             variant="default"
             disabled={isUploading}
-            className="w-full flex items-center gap-2"
+            className="w-full flex items-center gap-2 py-1.5 h-auto text-sm bg-msforms-600 hover:bg-msforms-700"
           >
-            {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
+            {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <FileUp className="h-3 w-3" />}
             {isUploading ? "Uploading..." : "Upload Documents"}
           </Button>
           <input
@@ -195,43 +194,45 @@ export function DocumentManager() {
 
           {isUploading && (
             <div className="mt-2">
-              <Progress value={uploadProgress} className="h-2" />
-              <p className="text-xs text-gray-500 mt-1 text-right">{uploadProgress}%</p>
+              <Progress value={uploadProgress} className="h-1.5 bg-gray-100" />
+              <p className="text-xs text-gray-500 mt-0.5 text-right">{uploadProgress}%</p>
             </div>
           )}
 
-          <p className="text-xs text-gray-500 mt-2">Supported formats: PDF, PPT, PPTX, DOC, DOCX, TXT</p>
+          <p className="text-[10px] text-gray-500 mt-1">Supported: PDF, PPT, PPTX, DOC, DOCX, TXT</p>
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-sm font-medium">Your Documents</h3>
+          <h3 className="text-xs font-medium mb-1.5 text-msforms-700">Your Documents</h3>
 
           {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-msforms-500" />
             </div>
           ) : documents.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 text-sm">No documents uploaded yet</div>
+            <div className="text-center py-4 text-gray-500 text-xs">No documents uploaded yet</div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {documents.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                  <div className="flex items-center gap-2 overflow-hidden">
+                <div
+                  key={doc.id}
+                  className="flex items-center justify-between p-1.5 bg-gray-50 rounded-md text-sm hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-1.5 overflow-hidden">
                     {getFileIcon(doc.type)}
                     <div className="overflow-hidden">
-                      <p className="text-sm font-medium truncate" title={doc.name}>
+                      <p className="text-xs font-medium truncate" title={doc.name}>
                         {doc.name}
                       </p>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {doc.type.toUpperCase()}
-                        </Badge>
-                        <span className="text-xs text-gray-500">{formatFileSize(doc.size)}</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-gray-500">{doc.type.toUpperCase()}</span>
+                        <span className="text-[10px] text-gray-500">•</span>
+                        <span className="text-[10px] text-gray-500">{formatFileSize(doc.size)}</span>
                       </div>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => deleteDocument(doc.id)} className="h-8 w-8 p-0">
-                    <Trash2 className="h-4 w-4 text-gray-500" />
+                  <Button variant="ghost" size="sm" onClick={() => deleteDocument(doc.id)} className="h-6 w-6 p-0">
+                    <Trash2 className="h-3 w-3 text-gray-500" />
                   </Button>
                 </div>
               ))}
@@ -242,3 +243,4 @@ export function DocumentManager() {
     </Card>
   )
 }
+

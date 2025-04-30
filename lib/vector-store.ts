@@ -1,4 +1,4 @@
-import { generateEmbedding } from "ai"
+import { createEmbedding } from "ai"
 import { openai } from "@ai-sdk/openai"
 import { createClient } from "@supabase/supabase-js"
 import { v4 as uuidv4 } from "uuid"
@@ -50,9 +50,9 @@ export async function storeEmbeddings(chunks: DocumentChunk[], source: string, d
         // Generate embedding
         let embedding
         try {
-          const result = await generateEmbedding({
+          const result = await createEmbedding({
             model: openai.embedding("text-embedding-ada-002"),
-            text: chunk.content,
+            input: chunk.content,
           })
           embedding = result.embedding
         } catch (embeddingError) {
@@ -103,9 +103,9 @@ export async function searchVectorStore(query: string, limit = 5): Promise<Searc
     // Generate embedding for the query
     let embedding
     try {
-      const result = await generateEmbedding({
+      const result = await createEmbedding({
         model: openai.embedding("text-embedding-ada-002"),
-        text: query,
+        input: query,
       })
       embedding = result.embedding
     } catch (error) {

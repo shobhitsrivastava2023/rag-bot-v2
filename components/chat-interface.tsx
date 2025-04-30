@@ -110,8 +110,8 @@ export function ChatInterface() {
 
   return (
     <Card className="h-[calc(100vh-200px)] flex flex-col">
-      <CardHeader>
-        <CardTitle className="text-xl">Chat with Your Documents</CardTitle>
+      <CardHeader className="pb-2 pt-4">
+        <CardTitle className="text-lg">Chat with Your Documents</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
         <div className="flex-1 overflow-auto px-4">
